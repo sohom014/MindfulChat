@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindfulChat | Mental Health Companion</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Load Font Awesome from standard CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="blob emerald"></div>
+    <div class="blob cyan"></div>
+  </div>
+
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-brand">
+      <i class="fa-solid fa-spa"></i>
+      <h1>MindfulChat</h1>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link active" data-target="view-home">Home</a>
+      <a href="#" class="nav-link" data-target="view-about">About</a>
+      <a href="#" class="nav-link" data-target="view-resources">Resources</a>
+      <a href="#" class="nav-link primary-nav-link" data-target="view-chat">Open Chat</a>
+    </div>
+    <div class="user-auth-area">
+      <!-- Theme Toggle Button -->
+      <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Theme">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+      <!-- Existing Auth Dropdown from Header -->
+      <button class="user-btn" id="userButton">
+        <span id="username">Guest</span>
+        <i class="fa-solid fa-circle-user avatar-icon"></i>
+      </button>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <button id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+        <button id="registerBtn"><i class="fa-solid fa-user-plus"></i> Register</button>
+        <button id="adminPanelBtn" style="display: none"><i class="fa-solid fa-shield-halved"></i> Admin Panel</button>
+        <button id="clearHistoryBtn" style="display: none"><i class="fa-solid fa-trash"></i> Clear History</button>
+        <button id="logoutBtn" style="display: none"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="app-container">
+    <main class="app-main">
+
+      <!-- View: Home -->
+      <section id="view-home" class="page-view active">
+        <div class="hero-content">
+          <div class="hero-badge">A Safe Space to Talk</div>
+          <h1 class="hero-title">Your Supportive AI<br>Mental Health Companion</h1>
+          <p class="hero-subtitle">MindfulChat listens, understands your emotions, and offers guidance whenever you feel overwhelmed, stressed, or just need someone to talk to, completely anonymously.</p>
+          <div class="hero-actions">
+            <button class="btn primary-btn btn-lg start-chat-nav" data-target="view-chat">Start a Chat</button>
+            <button class="btn outline-btn btn-lg nav-link-btn" data-target="view-about">Learn More</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: About -->
+      <section id="view-about" class="page-view">
+        <div class="page-container glass-card">
+          <div class="page-header">
+            <h2>About MindfulChat</h2>
+            <div class="header-line"></div>
+          </div>
+          <div class="page-content about-content">
+            <i class="fa-solid fa-hands-holding-child about-icon"></i>
+            <h3>Our Mission</h3>
+            <p>At MindfulChat, we believe everyone deserves a compassionate listener, available 24/7. Mental health is just as important as physical health, yet access to quick, non-judgmental support is often limited.</p>
+            <p>Our AI is built on deeply trained natural language models designed strictly to be supportive. It uses advanced sentiment analysis to detect when you might be overwhelmed, anxious, or experiencing deeper distress, adapting its tone to give grounding and calming advice.</p>
+            <div class="warning-box">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <div>
+                <strong>Important Disclaimer</strong>
+                <p>MindfulChat is an AI tool meant for supplementary support. It is <strong>not</strong> a replacement for professional medical advice, therapy, or psychiatric help. In emergencies, please seek immediate human professional help.</p>
+              </div>
+            </div>
+            
+            <div class="team-credits">
+              <span class="team-member"><i class="fa-solid fa-code"></i> Built by NeuroSync</span>
+              <span class="team-member">Rahul Saxena</span>
+              <span class="team-member">Sohom Ghosh</span>
+              <span class="team-member">Gautam Khokhar</span>
+              <span class="team-member">Avtar Singh</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Resources -->
+      <section id="view-resources" class="page-view">
+        <div class="page-container glass-card">
+          <div class="page-header">
+            <h2>Crisis Resources & Help</h2>
+            <div class="header-line"></div>
+            <p>If you or someone you know is struggling, there is help available right now.</p>
+          </div>
+          <div class="resources-grid">
+            <a href="https://www.aasra.info/" target="_blank" class="resource-card">
+              <div class="resource-icon"><i class="fa-solid fa-phone-volume"></i></div>
+              <h3>AASRA</h3>
+              <p>Call 9820466726. A 24x7 helpline for individuals facing emotional distress or suicidal thoughts.</p>
+            </a>
+            <a href="https://nimhans.ac.in/" target="_blank" class="resource-card">
+              <div class="resource-icon"><i class="fa-solid fa-hospital-user"></i></div>
+              <h3>NIMHANS Toll-Free</h3>
+              <p>Call 080-46110007. National Institute of Mental Health and Neurosciences national helpline.</p>
+            </a>
+            <a href="https://www.vandrevalafoundation.com/" target="_blank" class="resource-card">
+              <div class="resource-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+              <h3>Vandrevala Foundation</h3>
+              <p>Call 9999 666 555. 24x7 free mental health helpline available in multiple Indian languages.</p>
+            </a>
+            <a href="https://kiraan.gov.in" target="_blank" class="resource-card">
+              <div class="resource-icon"><i class="fa-solid fa-headset"></i></div>
+              <h3>Kiran Helpline</h3>
+              <p>Call 1800-599-0019. Ministry of Social Justice and Empowerment's 24x7 mental health rehabilitation helpline.</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- View: Chat Architecture -->
+      <section id="view-chat" class="page-view chat-layout">
+        <!-- Sidebar for chat history -->
+        <aside class="sidebar" id="sidebar">
+          <button class="btn primary-btn new-chat-btn" id="newChatBtn">
+            <i class="fa-solid fa-plus"></i> New Chat
+          </button>
+          <div class="sidebar-separator">Chat History</div>
+          <div class="history-list" id="historyList">
+            <!-- Chat session items will be appended here -->
+          </div>
+        </aside>
+
+        <!-- Main content area -->
+        <div class="content-area">
+          <div class="chat-container" id="chatContainer">
+            <div class="chat-messages" id="chatMessages">
+               <!-- Welcome message will dynamically render here -->
+            </div>
+            
+            <div class="chat-input-container">
+              <form id="messageForm">
+                <textarea id="messageInput" placeholder="Type your message here..." rows="1" disabled></textarea>
+                <button type="submit" id="sendButton" disabled>
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auth Forms Container (Overlay) -->
+      <div id="authContainer" class="auth-container hidden">
+        <div class="auth-box">
+          <button class="close-btn" id="closeAuthBtn"><i class="fa-solid fa-times"></i></button>
+          
+          <!-- Login Form -->
+          <form id="loginForm" class="auth-form">
+            <h2>Login</h2>
+            <div class="form-group">
+              <label for="loginEmail">Email</label>
+              <input type="email" id="loginEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" required>
+            </div>
+            <button type="submit" class="btn primary-btn">Login</button>
+            <p class="form-switch">Don't have an account? <a href="#" id="showRegisterForm">Register</a></p>
+          </form>
+          
+          <!-- Register Form -->
+          <form id="registerForm" class="auth-form hidden">
+            <h2>Create Account</h2>
+            <div class="form-group">
+              <label for="registerUsername">Username</label>
+              <input type="text" id="registerUsername" required>
+            </div>
+            <div class="form-group">
+              <label for="registerEmail">Email</label>
+              <input type="email" id="registerEmail" required>
+            </div>
+            <div class="form-group">
+              <label for="registerPassword">Password</label>
+              <input type="password" id="registerPassword" required minlength="6">
+              <small>Password must be at least 6 characters</small>
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" id="confirmPassword" required>
+            </div>
+            <button type="submit" class="btn primary-btn">Register</button>
+            <p class="form-switch">Already have an account? <a href="#" id="showLoginForm">Login</a></p>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification System -->
+  <div id="notification" class="notification hidden"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
