@@ -23,10 +23,10 @@ const model = genAI.getGenerativeModel({
 });
 
 const generationConfig = {
-  temperature: 0.7, // Lower temperature for more consistent responses
+  temperature: 0.7,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 1024, // Reduced to standard length
+  maxOutputTokens: 1024,
 };
 
 // Safety settings to allow mental health discussions while preventing harmful content
@@ -74,7 +74,6 @@ async function geminiChat(userMessage) {
     return result.response.text();
   } catch (error) {
     console.error("Gemini API error:", error);
-    // Return a friendly error message
     if (error.message.includes('API key')) {
       return "I apologize, but there seems to be an issue with the API configuration. Please contact support.";
     }

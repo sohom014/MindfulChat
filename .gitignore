@@ -13,6 +13,7 @@ config/*.js
 *.db
 *.sqlite3
 dump.rdb
+sentiment_service/*.csv
 
 # IDE/project files
 .vscode/

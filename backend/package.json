@@ -1,6 +1,6 @@
 {
   "name": "mental_health_chatbot",
-  "version": "1.0.0",
+  "version": "2.3.1",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -15,6 +15,7 @@
   "description": "A mental health chatbot using LSTM sentiment analysis and Google Gemini AI",
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "@pinecone-database/pinecone": "^7.1.0",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
@@ -22,7 +23,8 @@
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.13.2"
+    "mongoose": "^8.13.2",
+    "pdf-parse": "^2.4.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

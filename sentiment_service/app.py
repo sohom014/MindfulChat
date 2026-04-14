@@ -19,8 +19,8 @@ def load_model_and_config():
         with open('model/model_config.json', 'r') as f:
             config = json.load(f)
         
-        model = BertForSequenceClassification.from_pretrained('model/best_model')
-        tokenizer = BertTokenizer.from_pretrained('model/best_model')
+        model = BertForSequenceClassification.from_pretrained('model/best_model', local_files_only=True)
+        tokenizer = BertTokenizer.from_pretrained('model/best_model', local_files_only=True)
         model.to(device)
         model.eval()
         
@@ -59,6 +59,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class AnalyzeRequest(BaseModel):
     text: str
+
+@app.get('/health')
+async def health_check():
+    return {
+        'status': 'ok',
+        'model_loaded': model is not None,
+        'device': str(device)
+    }
 
 def preprocess_text(text):
     # Tokenize and prepare for BERT
@@ -116,5 +124,5 @@ async def analyze_sentiment(request: AnalyzeRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
-    port = int(os.getenv('SENTIMENT_SERVICE_PORT', 5001))
-    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
+    port = int(os.getenv('SENTIMENT_SERVICE_PORT', 5000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port)

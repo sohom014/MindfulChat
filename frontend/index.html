@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MindfulChat | Mental Health Companion</title>
-    <link rel="stylesheet" href="styles.css">
-    <!-- Load Font Awesome from standard CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindfulChat | Mental Health Companion</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Load Font Awesome from standard CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
   <!-- Animated Background -->
   <div class="animated-bg">
@@ -22,7 +24,10 @@
       <i class="fa-solid fa-spa"></i>
       <h1>MindfulChat</h1>
     </div>
-    <div class="nav-links">
+    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="nav-links" id="navLinks">
       <a href="#" class="nav-link active" data-target="view-home">Home</a>
       <a href="#" class="nav-link" data-target="view-about">About</a>
       <a href="#" class="nav-link" data-target="view-resources">Resources</a>
@@ -56,7 +61,8 @@
         <div class="hero-content">
           <div class="hero-badge">A Safe Space to Talk</div>
           <h1 class="hero-title">Your Supportive AI<br>Mental Health Companion</h1>
-          <p class="hero-subtitle">MindfulChat listens, understands your emotions, and offers guidance whenever you feel overwhelmed, stressed, or just need someone to talk to, completely anonymously.</p>
+          <p class="hero-subtitle">MindfulChat listens, understands your emotions, and offers guidance whenever you feel
+            overwhelmed, stressed, or just need someone to talk to, completely anonymously.</p>
           <div class="hero-actions">
             <button class="btn primary-btn btn-lg start-chat-nav" data-target="view-chat">Start a Chat</button>
             <button class="btn outline-btn btn-lg nav-link-btn" data-target="view-about">Learn More</button>
@@ -74,22 +80,25 @@
           <div class="page-content about-content">
             <i class="fa-solid fa-hands-holding-child about-icon"></i>
             <h3>Our Mission</h3>
-            <p>At MindfulChat, we believe everyone deserves a compassionate listener, available 24/7. Mental health is just as important as physical health, yet access to quick, non-judgmental support is often limited.</p>
-            <p>Our AI is built on deeply trained natural language models designed strictly to be supportive. It uses advanced sentiment analysis to detect when you might be overwhelmed, anxious, or experiencing deeper distress, adapting its tone to give grounding and calming advice.</p>
+            <p>At MindfulChat, we believe everyone deserves a compassionate listener, available 24/7. Mental health is
+              just as important as physical health, yet access to quick, non-judgmental support is often limited.</p>
+            <p>Our AI is built on deeply trained natural language models designed strictly to be supportive. It uses
+              advanced sentiment analysis to detect when you might be overwhelmed, anxious, or experiencing deeper
+              distress, adapting its tone to give grounding and calming advice.</p>
             <div class="warning-box">
               <i class="fa-solid fa-triangle-exclamation"></i>
               <div>
                 <strong>Important Disclaimer</strong>
-                <p>MindfulChat is an AI tool meant for supplementary support. It is <strong>not</strong> a replacement for professional medical advice, therapy, or psychiatric help. In emergencies, please seek immediate human professional help.</p>
+                <p>MindfulChat is an AI tool meant for supplementary support. It is <strong>not</strong> a replacement
+                  for professional medical advice, therapy, or psychiatric help. In emergencies, please seek immediate
+                  human professional help.</p>
               </div>
             </div>
-            
+
             <div class="team-credits">
               <span class="team-member"><i class="fa-solid fa-code"></i> Built by NeuroSync</span>
-              <span class="team-member">Rahul Saxena</span>
               <span class="team-member">Sohom Ghosh</span>
-              <span class="team-member">Gautam Khokhar</span>
-              <span class="team-member">Avtar Singh</span>
+              <span class="team-member">Rahul Saxena</span>
             </div>
           </div>
         </div>
@@ -122,7 +131,8 @@
             <a href="https://kiraan.gov.in" target="_blank" class="resource-card">
               <div class="resource-icon"><i class="fa-solid fa-headset"></i></div>
               <h3>Kiran Helpline</h3>
-              <p>Call 1800-599-0019. Ministry of Social Justice and Empowerment's 24x7 mental health rehabilitation helpline.</p>
+              <p>Call 1800-599-0019. Ministry of Social Justice and Empowerment's 24x7 mental health rehabilitation
+                helpline.</p>
             </a>
           </div>
         </div>
@@ -145,12 +155,15 @@
         <div class="content-area">
           <div class="chat-container" id="chatContainer">
             <div class="chat-messages" id="chatMessages">
-               <!-- Welcome message will dynamically render here -->
+              <!-- Welcome message will dynamically render here -->
             </div>
-            
+
             <div class="chat-input-container">
               <form id="messageForm">
                 <textarea id="messageInput" placeholder="Type your message here..." rows="1" disabled></textarea>
+                <button type="button" id="micButton" class="mic-btn hidden" aria-label="Voice input" disabled>
+                  <i class="fa-solid fa-microphone"></i>
+                </button>
                 <button type="submit" id="sendButton" disabled>
                   <i class="fa-solid fa-paper-plane"></i>
                 </button>
@@ -164,7 +177,7 @@
       <div id="authContainer" class="auth-container hidden">
         <div class="auth-box">
           <button class="close-btn" id="closeAuthBtn"><i class="fa-solid fa-times"></i></button>
-          
+
           <!-- Login Form -->
           <form id="loginForm" class="auth-form">
             <h2>Login</h2>
@@ -179,7 +192,7 @@
             <button type="submit" class="btn primary-btn">Login</button>
             <p class="form-switch">Don't have an account? <a href="#" id="showRegisterForm">Register</a></p>
           </form>
-          
+
           <!-- Register Form -->
           <form id="registerForm" class="auth-form hidden">
             <h2>Create Account</h2>
@@ -213,4 +226,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>

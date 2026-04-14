@@ -18,12 +18,56 @@ const sendButton = document.getElementById('sendButton');
 const chatMessages = document.getElementById('chatMessages');
 const notification = document.getElementById('notification');
 const adminPanelBtn = document.getElementById('adminPanelBtn');
+const micButton = document.getElementById('micButton');
 
 // New Architecture Elements
 const sidebar = document.getElementById('sidebar');
 const chatContainer = document.getElementById('chatContainer');
 const newChatBtn = document.getElementById('newChatBtn');
 const historyList = document.getElementById('historyList');
+
+// ── STT / TTS State ──────────────────────────────────────────────────────
+let recognition = null;
+let isListening = false;
+let currentUtterance = null; // track active TTS playback
+
+// Initialize Web Speech API (STT)
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    messageInput.value = transcript;
+    messageInput.style.height = 'auto';
+    messageInput.style.height = messageInput.scrollHeight + 'px';
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micButton.classList.remove('listening');
+    micButton.querySelector('i').className = 'fa-solid fa-microphone';
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Speech recognition error:', event.error);
+    isListening = false;
+    micButton.classList.remove('listening');
+    micButton.querySelector('i').className = 'fa-solid fa-microphone';
+    if (event.error === 'not-allowed') {
+      showNotification('Microphone access denied. Please allow microphone access.', 'error');
+    }
+  };
+} else {
+  // Browser doesn't support speech recognition
+  if (micButton) micButton.style.display = 'none';
+}
 
 // SPA Routing Elements
 const navLinks = document.querySelectorAll('.nav-link, .nav-link-btn, .start-chat-nav');
@@ -55,6 +99,62 @@ registerForm.addEventListener('submit', handleRegister);
 messageForm.addEventListener('submit', sendMessage);
 newChatBtn.addEventListener('click', startNewChat);
 themeToggleBtn.addEventListener('click', toggleTheme);
+
+// Mic button: toggle speech recognition
+if (micButton) {
+  micButton.addEventListener('click', toggleSpeechRecognition);
+}
+
+// ── Mobile Hamburger Menu ────────────────────────────────────────────────
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navLinksContainer = document.getElementById('navLinks');
+
+if (mobileMenuBtn && navLinksContainer) {
+  mobileMenuBtn.addEventListener('click', () => {
+    navLinksContainer.classList.toggle('open');
+    const icon = mobileMenuBtn.querySelector('i');
+    if (navLinksContainer.classList.contains('open')) {
+      icon.classList.replace('fa-bars', 'fa-xmark');
+    } else {
+      icon.classList.replace('fa-xmark', 'fa-bars');
+    }
+  });
+
+  // Close mobile menu when a nav link is clicked
+  navLinksContainer.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinksContainer.classList.remove('open');
+      const icon = mobileMenuBtn.querySelector('i');
+      icon.classList.replace('fa-xmark', 'fa-bars');
+    });
+  });
+
+  // Close mobile menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!mobileMenuBtn.contains(e.target) && !navLinksContainer.contains(e.target)) {
+      navLinksContainer.classList.remove('open');
+      const icon = mobileMenuBtn.querySelector('i');
+      icon.classList.replace('fa-xmark', 'fa-bars');
+    }
+  });
+}
+
+// Show mic button when textarea is focused, hide on blur
+messageInput.addEventListener('focus', () => {
+  if (recognition && !micButton.disabled) {
+    micButton.classList.remove('hidden');
+    micButton.classList.add('visible');
+  }
+});
+
+messageInput.addEventListener('blur', (e) => {
+  // Don't hide if clicking the mic button itself
+  if (e.relatedTarget === micButton) return;
+  if (!isListening) {
+    micButton.classList.add('hidden');
+    micButton.classList.remove('visible');
+  }
+});
 
 // Theme Managment
 function initTheme() {
@@ -142,6 +242,7 @@ function updateAuthState(auth, user) {
     sidebar.classList.remove('hidden');
     messageInput.disabled = false;
     sendButton.disabled = false;
+    micButton.disabled = false;
     
     // Show admin panel button if user is admin
     if (adminPanelBtn) {
@@ -158,6 +259,7 @@ function updateAuthState(auth, user) {
     sidebar.classList.add('hidden');
     messageInput.disabled = true;
     sendButton.disabled = true;
+    micButton.disabled = true;
     showLandingView();
     
     if (adminPanelBtn) {
@@ -394,7 +496,7 @@ async function handleLogin(e) {
       showNotification('Login successful!', 'success');
       loginForm.reset();
     } else {
-      showNotification(data.error || 'Login failed', 'error');
+      showNotification(data.error || data.message || 'Login failed', 'error');
     }
   } catch (error) {
     console.error('Login error:', error);
@@ -442,7 +544,7 @@ async function handleRegister(e) {
       showNotification('Registration successful!', 'success');
       registerForm.reset();
     } else {
-      showNotification(data.error || 'Registration failed', 'error');
+      showNotification(data.error || data.message || 'Registration failed', 'error');
     }
   } catch (error) {
     console.error('Registration error:', error);
@@ -607,12 +709,33 @@ function addMessageToChat(message, sender, timestamp = 'Now', flagged = false, s
     ? message
     : 'Sorry, I could not process your message.';
 
-  messageElement.innerHTML = `
-    <div class="message-content">
-      <p>${formatMessage(safeMessage)}</p>
-    </div>
-    <div class="message-time">${timestamp}</div>
-  `;
+  // Build message HTML — add TTS speaker button for bot messages
+  if (sender === 'bot') {
+    messageElement.innerHTML = `
+      <div class="message-content">
+        <p>${formatMessage(safeMessage)}</p>
+      </div>
+      <div class="message-footer">
+        <div class="message-time">${timestamp}</div>
+        <button class="tts-btn" aria-label="Listen to message">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+    `;
+
+    // Attach click listener safely without string interpolation bugs
+    const ttsBtn = messageElement.querySelector('.tts-btn');
+    if (ttsBtn) {
+      ttsBtn.addEventListener('click', () => speakMessage(ttsBtn, safeMessage, sentiment));
+    }
+  } else {
+    messageElement.innerHTML = `
+      <div class="message-content">
+        <p>${formatMessage(safeMessage)}</p>
+      </div>
+      <div class="message-time">${timestamp}</div>
+    `;
+  }
 
   chatMessages.appendChild(messageElement);
 }
@@ -671,13 +794,16 @@ function showNotification(message, type = 'success') {
   notification.textContent = message;
   notification.className = `notification ${type}`;
   notification.classList.remove('hidden');
+
+  // Force reflow then add 'show' class so CSS transition triggers
+  void notification.offsetWidth;
+  notification.classList.add('show');
   
   setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-in forwards';
+    notification.classList.remove('show');
     setTimeout(() => {
       notification.classList.add('hidden');
-      notification.style.animation = '';
-    }, 300);
+    }, 400);
   }, 5000);
 }
 
@@ -691,3 +817,104 @@ document.addEventListener('click', function(e) {
     dropdownMenu.classList.remove('active');
   }
 });
+
+// ==========================================================================
+//   STT — Speech-to-Text (Web Speech API)
+// ==========================================================================
+function toggleSpeechRecognition() {
+  if (!recognition) {
+    showNotification('Speech recognition is not supported in this browser.', 'error');
+    return;
+  }
+
+  if (isListening) {
+    recognition.stop();
+    isListening = false;
+    micButton.classList.remove('listening');
+    micButton.querySelector('i').className = 'fa-solid fa-microphone';
+  } else {
+    recognition.start();
+    isListening = true;
+    micButton.classList.add('listening');
+    micButton.querySelector('i').className = 'fa-solid fa-microphone-lines';
+    showNotification('Listening... speak now', 'info');
+  }
+}
+
+// ==========================================================================
+//   TTS — Text-to-Speech (Browser SpeechSynthesis)
+// ==========================================================================
+function speakMessage(buttonEl, text, sentiment = null) {
+  // If already speaking this message, stop it
+  if (currentUtterance && buttonEl.classList.contains('speaking')) {
+    speechSynthesis.cancel();
+    buttonEl.classList.remove('speaking');
+    buttonEl.querySelector('i').className = 'fa-solid fa-volume-high';
+    currentUtterance = null;
+    return;
+  }
+
+  // Cancel any other ongoing speech
+  speechSynthesis.cancel();
+  document.querySelectorAll('.tts-btn.speaking').forEach(btn => {
+    btn.classList.remove('speaking');
+    btn.querySelector('i').className = 'fa-solid fa-volume-high';
+  });
+
+  // Clean text for speech (strip URLs, markdown-ish chars)
+  const cleanText = text
+    .replace(/(https?:\/\/[^\s]+)/g, 'link')
+    .replace(/[*_~`#]/g, '')
+    .trim();
+
+  if (!cleanText) return;
+
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  
+  // Apply dynamic voice profiles based on sentiment
+  const voiceProfiles = {
+    'anxiety': { rate: 0.8, pitch: 0.9 },
+    'depression': { rate: 0.85, pitch: 0.8 },
+    'suicidal': { rate: 0.8, pitch: 0.85 },
+    'stress': { rate: 0.9, pitch: 0.95 },
+    'bipolar': { rate: 0.95, pitch: 1.1 },
+    'neutral': { rate: 1.0, pitch: 1.0 },
+    'normal': { rate: 1.0, pitch: 1.0 }
+  };
+
+  const profile = (sentiment && voiceProfiles[sentiment]) || voiceProfiles['normal'];
+  utterance.rate = profile.rate;
+  utterance.pitch = profile.pitch;
+  utterance.volume = 1;
+
+  // Try to pick a natural-sounding voice
+  const voices = speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) 
+                 || voices.find(v => v.lang.startsWith('en'));
+  if (preferred) utterance.voice = preferred;
+
+  // Visual feedback
+  buttonEl.classList.add('speaking');
+  buttonEl.querySelector('i').className = 'fa-solid fa-volume-off';
+  currentUtterance = utterance;
+
+  utterance.onend = () => {
+    buttonEl.classList.remove('speaking');
+    buttonEl.querySelector('i').className = 'fa-solid fa-volume-high';
+    currentUtterance = null;
+  };
+
+  utterance.onerror = () => {
+    buttonEl.classList.remove('speaking');
+    buttonEl.querySelector('i').className = 'fa-solid fa-volume-high';
+    currentUtterance = null;
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+// Preload voices (some browsers need this)
+if (typeof speechSynthesis !== 'undefined') {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+}

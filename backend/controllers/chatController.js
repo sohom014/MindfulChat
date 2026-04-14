@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require('axios');
 const Chat = require('../models/Chat');
+const { searchTherapyContext } = require('./ragService');
 
 const connectDB = async () => {
   try {
@@ -19,7 +20,8 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 // Helper function to analyze sentiment
 async function analyzeSentiment(text) {
     try {
-        const response = await axios.post('http://localhost:5001/analyze', { text });
+        const sentimentPort = process.env.SENTIMENT_SERVICE_PORT || 5000;
+        const response = await axios.post(`http://localhost:${sentimentPort}/analyze`, { text });
         return response.data;
     } catch (error) {
         console.error('Sentiment analysis error:', error.message);
@@ -28,7 +30,7 @@ async function analyzeSentiment(text) {
 }
 
 // Helper function to get Gemini response
-async function getGeminiResponse(userMessage, emotion, confidence) {
+async function getGeminiResponse(userMessage, emotion, confidence, ragContext = '') {
     try {
 
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
@@ -54,22 +56,35 @@ async function getGeminiResponse(userMessage, emotion, confidence) {
             }
         }
 
-        const prompt = `You are a compassionate mental health assistant. ${emotionContext}
+        // Build RAG-enhanced prompt
+        let ragSection = '';
+        if (ragContext) {
+            ragSection = `
+--- VERIFIED THERAPY TECHNIQUES (from clinical guidelines) ---
+${ragContext}
+--- END OF VERIFIED TECHNIQUES ---
 
+IMPORTANT: Base your therapeutic suggestions on the verified techniques provided above. Do NOT invent or fabricate clinical advice. Summarize the relevant technique in a warm, supportive way.
+`;
+        }
+
+        const prompt = `You are a compassionate mental health assistant. ${emotionContext}
+${ragSection}
 Patient message: "${userMessage}"
 
 Guidelines:
 - Be warm, empathetic, and validating
 - Keep responses concise (2-3 sentences)
-- For anxiety: suggest grounding techniques
-- For depression: focus on small steps and hope
-- For stress: recommend specific relaxation methods
-- For suicidal thoughts: emphasize immediate help
+- For anxiety: suggest grounding techniques from the verified sources above
+- For depression: focus on small steps and hope using verified techniques
+- For stress: recommend specific relaxation methods from verified sources
+- For suicidal thoughts: emphasize immediate help and safety planning
 - Always maintain a supportive, non-judgmental tone
-- Include one practical, actionable suggestion
+- Include one practical, actionable suggestion based on the therapy techniques provided
 - Mention professional help if needed
 - Keep it concise but caring
-- If suicidal, provide Indian suicide prevention helpline resources
+- If the user asks anything other than related to mental health turn them down saying you are only a mental health assisstant.
+- If suicidal, provide Indian suicide prevention helpline resources (Sneha: 044-24640050, iCall: 9152987821)
 
 Response:`;
 
@@ -87,6 +102,12 @@ Response:`;
     }
 }
 
+// ── Pipeline Configuration ───────────────────────────────────────────────
+const PIPELINE_DELAY_MS = parseInt(process.env.PIPELINE_DELAY_MS) || 500;
+
+// Utility to pause execution
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Chat controller functions
 const sendMessage = async (req, res) => {
     try {
@@ -97,16 +118,48 @@ const sendMessage = async (req, res) => {
             return res.status(400).json({ error: 'Message cannot be empty' });
         }
 
-        // Analyze sentiment
-        const sentimentResult = await analyzeSentiment(message);
+        const pipelineStart = Date.now();
 
-        
-        // Get AI response
+        // ── Step 1: BERT Sentiment Analysis ──────────────────────────────
+        let sentimentResult = { emotion: 'neutral', confidence: 0, needs_immediate_help: false };
+        const step1Start = Date.now();
+        try {
+            sentimentResult = await analyzeSentiment(message);
+            console.log(`[PIPELINE] Step 1: BERT Sentiment → ${sentimentResult.emotion} (conf: ${sentimentResult.confidence.toFixed(2)})  (${Date.now() - step1Start}ms)`);
+        } catch (sentErr) {
+            console.error(`[PIPELINE] Step 1: BERT Sentiment FAILED (${Date.now() - step1Start}ms):`, sentErr.message);
+            // Continue with neutral defaults
+        }
+
+        // ── Delay — breathing room between BERT model and RAG ────────────
+        console.log(`[PIPELINE] Waiting ${PIPELINE_DELAY_MS}ms before RAG search...`);
+        await delay(PIPELINE_DELAY_MS);
+
+        // ── Step 2: RAG — Pinecone vector search for therapy context ─────
+        let ragContext = '';
+        const step2Start = Date.now();
+        try {
+            ragContext = await searchTherapyContext(message, sentimentResult.emotion);
+            if (ragContext) {
+                console.log(`[PIPELINE] Step 2: RAG search → Found relevant therapy context  (${Date.now() - step2Start}ms)`);
+            } else {
+                console.log(`[PIPELINE] Step 2: RAG search → No relevant context found  (${Date.now() - step2Start}ms)`);
+            }
+        } catch (ragErr) {
+            console.error(`[PIPELINE] Step 2: RAG search FAILED (${Date.now() - step2Start}ms):`, ragErr.message);
+            // Continue without RAG context
+        }
+
+        // ── Step 3: LLM Response Generation (Gemini) ─────────────────────
+        const step3Start = Date.now();
         const aiResponse = await getGeminiResponse(
             message, 
             sentimentResult.emotion, 
-            sentimentResult.confidence
+            sentimentResult.confidence,
+            ragContext
         );
+        console.log(`[PIPELINE] Step 3: Gemini response generated  (${Date.now() - step3Start}ms)`);
+        console.log(`[PIPELINE] Total pipeline time: ${Date.now() - pipelineStart}ms`);
 
 
         // Save to database
